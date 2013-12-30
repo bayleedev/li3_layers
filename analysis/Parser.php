@@ -1,6 +1,6 @@
 <?php
 
-namespace li3_blocks\analysis;
+namespace li3_layers\analysis;
 
 /**
  * Compiles multiple (compiled) PHP Files into a compiled html file.

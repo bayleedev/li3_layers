@@ -1,6 +1,6 @@
 <?php
 
-namespace li3_blocks\models;
+namespace li3_layers\models;
 
 // Helps break down a single file
 class File {
@@ -85,7 +85,7 @@ class File {
 	 */
 	public function name_space() {
 		$info = pathinfo($this->_file);
-		$base = '/li3_hierarchy/resources/tmp/cache/compiled/';
+		$base = '/li3_layers/resources/tmp/cache/compiled/';
 		return $base . substr($info['dirname'], strpos($info['dirname'], '/views/') + 1);
 	}
 

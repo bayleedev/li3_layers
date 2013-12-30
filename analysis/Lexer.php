@@ -1,6 +1,6 @@
 <?php
 
-namespace li3_blocks\analysis;
+namespace li3_layers\analysis;
 
 /**
  * Compiles a file into a PHP Class
@@ -39,7 +39,7 @@ class Lexer {
 	 */
 	public function __construct() {
 		foreach ($this->_templates as $key => &$value) {
-			$value = file_get_contents(HIERARCHY_ROOT_PATH . $this->_templateFiles[$key]);
+			$value = file_get_contents(LAYERS_ROOT_PATH . $this->_templateFiles[$key]);
 		}
 	}
 

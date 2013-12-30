@@ -1,8 +1,8 @@
 <?php
 
-namespace li3_blocks;
+namespace li3_layers;
 
-define('HIERARCHY_ROOT_PATH', __DIR__);
+define('LAYERS_ROOT_PATH', __DIR__);
 define('APP_VIEW_PATH', __DIR__ . '/views');
 
 require_once __DIR__ . '/models/File.php';
@@ -20,9 +20,9 @@ class Runner {
 	 * @var array
 	 */
 	protected $_classes = array(
-		'file' => 'li3_blocks\models\File',
-		'lexer' => 'li3_blocks\analysis\Lexer',
-		'parser' => 'li3_blocks\analysis\Parser',
+		'file' => 'li3_layers\models\File',
+		'lexer' => 'li3_layers\analysis\Lexer',
+		'parser' => 'li3_layers\analysis\Parser',
 	);
 
 	public function __construct() {
