@@ -15,7 +15,7 @@ class File {
 
 	protected static $_terminals = array(
 		self::T_BLOCK => "/{:block \"([^\"]+)\"}(.*){block:}/msU",
-		self::T_PARENT => "/{:parent \"([^\"]+)\":}/msU",
+		self::T_PARENT => "/{:parent (?:layout )?\"([^\"]+)\":}/msU",
 	);
 
 	public function __construct($file) {
@@ -52,7 +52,22 @@ class File {
 		foreach ($matches[1] as $key => $match) {
 			$blocks[$match] = $matches[2][$key];
 		}
+		if ($main = $this->mainBlock()) {
+			$blocks['main'] = $main;
+		}
 		return $blocks;
+	}
+
+	/**
+	 * Generates the "main" block for parent layouts.
+	 *
+	 * @return text
+	 */
+	public function mainBlock() {
+		if ($this->parent() !== false) {
+			return;
+		}
+		return $this->_contents;
 	}
 
 	/**
