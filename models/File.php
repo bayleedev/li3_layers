@@ -55,6 +55,13 @@ class File {
 		if ($main = $this->mainBlock()) {
 			$blocks['main'] = $main;
 		}
+		return $this->replaceBlockCalls($blocks);
+	}
+
+	public function replaceBlockCalls(array $blocks) {
+		foreach ($blocks as &$block) {
+			$block = preg_replace
+		}
 		return $blocks;
 	}
 
