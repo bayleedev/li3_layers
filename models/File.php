@@ -2,25 +2,29 @@
 
 namespace li3_layers\models;
 
-// Helps break down a single file
+use lithium\core\Libraries;
+
 class File {
 
 	const T_BLOCK = 0;
 
 	const T_PARENT = 1;
 
-	protected $_file = null;
+	public $file = null;
 
-	protected $_contents = null;
+	public $contents = null;
 
 	protected static $_terminals = array(
 		self::T_BLOCK => "/{:block \"([^\"]+)\"}(.*){block:}/msU",
-		self::T_PARENT => "/{:parent \"([^\"]+)\":}/msU",
+		self::T_PARENT => "/{:parent (?:layout )?\"([^\"]+)\":}/msU",
 	);
 
 	public function __construct($file) {
-		$this->_file = $file;
-		$this->_contents = file_get_contents($file);
+		$this->file = $file;
+	}
+
+	public function contents() {
+		return $this->content ?: ($this->content = file_get_contents($this->file));
 	}
 
 	/**
@@ -48,11 +52,28 @@ class File {
 	 */
 	public function blocks() {
 		$blocks = $matches = array();
-		preg_match_all(static::$_terminals[self::T_BLOCK], $this->_contents, $matches);
+		preg_match_all(static::$_terminals[self::T_BLOCK], $this->contents(), $matches);
 		foreach ($matches[1] as $key => $match) {
 			$blocks[$match] = $matches[2][$key];
 		}
+		if ($main = $this->mainBlock()) {
+			$blocks['main'] = $main;
+		}
+		return $this->replaceBlockCalls($blocks);
+	}
+
+	public function replaceBlockCalls(array $blocks) {
+		foreach ($blocks as &$block) {
+			$block = preg_replace(static::$_terminals[self::T_BLOCK], '<?=\$this->$1();?>', $block);
+		}
 		return $blocks;
+	}
+
+	public function mainBlock() {
+		if ($this->parent() !== false) {
+			return;
+		}
+		return $this->contents();
 	}
 
 	/**
@@ -61,9 +82,8 @@ class File {
 	 * @return mixed
 	 */
 	public function parent() {
-		$file = get_called_class();
-		preg_match(static::$_terminals[self::T_PARENT], $this->_contents, $matches);
-		return isset($matches[1]) ? new $file(APP_VIEW_PATH . '/' . $matches[1] . '.html.php') : false;
+		preg_match(static::$_terminals[self::T_PARENT], $this->contents(), $matches);
+		return isset($matches[1]) ? new static(APP_VIEW_PATH . '/' . $matches[1] . '.html.php') : false;
 	}
 
 	/**
@@ -72,7 +92,7 @@ class File {
 	 * @return mixed
 	 */
 	public function name() {
-		$info = pathinfo($this->_file);
+		$info = pathinfo($this->file);
 		preg_match('/([^.]+)/', $info['basename'], $matches);
 		return $matches[1];
 	}
@@ -80,13 +100,13 @@ class File {
 	/**
 	 * The namespace the file 'class' should be in.
 	 *
-	 * @todo  rename to something `lowerCamelCase`.
+	 * @todo Change to lowerCamelCase `namespace` is a T_NAMESPACE
 	 * @return string
 	 */
 	public function name_space() {
-		$info = pathinfo($this->_file);
-		$base = '/li3_layers/resources/tmp/cache/compiled/';
-		return $base . substr($info['dirname'], strpos($info['dirname'], '/views/') + 1);
+		$info = pathinfo($this->file);
+		$base = '\li3_layers\resources\tmp\cache\compiled\\';
+		return $base . str_replace('/', '\\', substr($info['dirname'], strpos($info['dirname'], '/views/') + 1));
 	}
 
 	/**
@@ -97,7 +117,24 @@ class File {
 	 * @return string
 	 */
 	public function filePath() {
-		return substr($this->_file, strpos($this->_file, '/views/'));
+		return substr($this->file, strpos($this->file, '/views/'));
+	}
+
+	public function lastModified() {
+		return filemtime($this->file);
+	}
+
+	public function cacheFile() {
+		$appPath = Libraries::get(true, 'path');
+		$cachePath = Libraries::get(true, 'resources') . '/tmp/cache/classes';
+		$relFile = substr($this->file, strlen($appPath) + strlen('/views'));
+		return $cachePath . $relFile;
+	}
+
+	public function cacheExpired() {
+		$cache = $this->cacheFile();
+		$cacheCreated = file_exists($cache) ? filemtime($cache) : 0;
+		return $this->lastModified() > $cacheCreated;
 	}
 
 }

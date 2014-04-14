@@ -50,7 +50,7 @@ class Lexer {
 	 * @return void
 	 */
 	public function lex($file) {
-		$this->_file = $file;
+		$this->file = $file;
 		return $this->compileClass();
 	}
 
@@ -62,7 +62,7 @@ class Lexer {
 	public function compileMethods() {
 		$methods = array();
 		$from = array('{:name:}', '{:contents:}');
-		foreach ($this->_file->blocks() as $name => $value) {
+		foreach ($this->file->blocks() as $name => $value) {
 			$methods[] = str_replace($from, compact('name', 'value'), $this->_templates['method']);
 		}
 		return implode($methods, PHP_EOL);
@@ -74,12 +74,12 @@ class Lexer {
 	 * @return string
 	 */
 	public function compileClass() {
-		$parent = $this->_file->parent();
+		$parent = $this->file->parent();
 		$values = array(
-			'{:name:}' => $this->_file->name(),
-			'{:parent:}' => $parent ? $parent->name_space() . '/' . $parent->name() : 'foo',
+			'{:name:}' => $this->file->name(),
+			'{:parent:}' => $parent ? $parent->name_space() . $parent->name() : 'foo',
 			'{:contents:}' => $this->compileMethods(),
-			'{:namespace:}' => $this->_file->name_space(),
+			'{:namespace:}' => $this->file->name_space(),
 		);
 		return str_replace(array_keys($values), $values, $this->_templates['class']);
 	}
